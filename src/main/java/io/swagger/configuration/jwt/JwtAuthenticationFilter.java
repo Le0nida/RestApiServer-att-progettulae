@@ -1,10 +1,7 @@
-package io.swagger.configuration;
+package io.swagger.configuration.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import io.swagger.api.UserRepository;
 import io.swagger.model.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,20 +20,20 @@ import java.util.ArrayList;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtTokenService jwtTokenService;
+    private final JwtTokenService jwtTokenService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    public JwtAuthenticationFilter(JwtTokenService jwtTokenService, UserRepository userRepository) {
+        this.jwtTokenService = jwtTokenService;
+        this.userRepository = userRepository;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String token = getJwtFromRequest(request);
-
-        // Aggiungi log per il debugging
-        System.out.println("Token ricevuto: " + token);
 
         if (token != null && jwtTokenService.validateToken(token)) {
             String username = jwtTokenService.getUsernameFromToken(token);
@@ -45,13 +42,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (user == null) {
                 throw new UsernameNotFoundException("User not found with username: " + username);
             }
-            UserDetails userDetails = new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), new ArrayList<>());
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        } else {
-            System.out.println("Invalid JWT token used: " + token);
+            if (jwtTokenService.validateToken(token, username)) {
+                UserDetails userDetails = new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), new ArrayList<>());
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
         }
 
         filterChain.doFilter(request, response);

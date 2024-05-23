@@ -1,4 +1,4 @@
-package io.swagger.configuration;
+package io.swagger.configuration.filter;
 
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
