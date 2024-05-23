@@ -14,6 +14,6 @@ public class RandomRedirectFilter implements Filter {
             throws IOException {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        httpResponse.sendRedirect("/notAuthorized");
+        httpResponse.sendRedirect("/unauthorized");
     }
 }

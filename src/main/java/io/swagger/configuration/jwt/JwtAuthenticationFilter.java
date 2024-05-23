@@ -1,7 +1,6 @@
 package io.swagger.configuration.jwt;
 
 import io.swagger.api.UserRepository;
-import io.swagger.model.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;

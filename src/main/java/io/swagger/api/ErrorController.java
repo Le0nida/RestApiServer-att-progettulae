@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class ErrorController {
 
-    @GetMapping("/notAuthorized")
+    @GetMapping("/unauthorized")
     public String unauthorized() {
         return "not_authorized";
     }
