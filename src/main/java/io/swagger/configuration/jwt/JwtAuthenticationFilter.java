@@ -2,6 +2,7 @@ package io.swagger.configuration.jwt;
 
 import io.swagger.api.UserRepository;
 import io.swagger.model.User;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,6 +21,8 @@ import java.util.ArrayList;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    @Value("${jwt.password}")
+    private String password;
     private final JwtTokenService jwtTokenService;
 
     private final UserRepository userRepository;
@@ -38,13 +41,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null && jwtTokenService.validateToken(token)) {
             String username = jwtTokenService.getUsernameFromToken(token);
 
-            User user = userRepository.findByUsername(username);
-            if (user == null) {
+            if (!userRepository.existsByUsername(username)) {
                 throw new UsernameNotFoundException("User not found with username: " + username);
             }
 
             if (jwtTokenService.validateToken(token, username)) {
-                UserDetails userDetails = new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), new ArrayList<>());
+                UserDetails userDetails = new org.springframework.security.core.userdetails.User(username, password, new ArrayList<>());
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
