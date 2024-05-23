@@ -2,3 +2,5 @@
 /target
 .idea/vcs.xml
 logs/application.log
+/.idea
+/logs
