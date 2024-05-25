@@ -11,6 +11,7 @@
             margin-top: 10px;
         }
 
+        #saveBtn,
         input[type="submit"] {
             margin-top: 30px;
             background-color: #ff4d4d;
@@ -36,13 +37,63 @@
             margin-bottom: 5px;
         }
 
+        /* Stili per la finestra di dialogo OTP */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .otp-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .otp-error-message {
+            color: #ff4d4d;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
 <h1>
     <span class="title" onclick="goBack()">Dashboard</span> - System Settings
 </h1>
-<form class="container" onsubmit="return saveSettings()">
+<form class="container" onsubmit="return showOtpDialog()">
 
     <!-- Parametri di rete -->
     <h3>Network Settings</h3>
@@ -176,6 +227,18 @@
     <input type="submit" value="Save Settings">
 </form>
 
+<!-- Finestra di dialogo OTP -->
+<div id="otpModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeOtpDialog()">&times;</span>
+        <h2>Enter OTP</h2>
+        <p>Enter 6-digit OTP code received on your mail inbox.</p>
+        <input type="text" id="otpInput" class="otp-input" maxlength="6" placeholder="Enter OTP" required>
+        <button id="saveBtn" onclick="validateOtp()">Submit</button>
+        <div id="otpErrorMessage" class="otp-error-message" style="display: none;">Codice OTP sbagliato</div>
+    </div>
+</div>
+
 <script>
     // Funzione per validare i campi specifici di autenticazione
     function validateAuthFields() {
@@ -239,29 +302,36 @@
         }
     }
 
-    // Funzione per salvare le impostazioni
-    function saveSettings() {
-        // Validazione dei campi di input
-        var host = document.getElementById("server_host").value.trim();
-        var port = document.getElementById("server_port").value.trim();
-        var maxConnections = document.getElementById("max_connections").value.trim();
-        var timeout = document.getElementById("timeout").value.trim();
-        var maxMemory = document.getElementById("max_memory").value.trim();
-        var maxCpu = document.getElementById("max_cpu").value.trim();
-        var logLevel = document.getElementById("log_level").value.trim();
-        var logFile = document.getElementById("log_file").value.trim();
-        var authMethod = document.getElementById("auth_method").value.trim();
-
-        if (host === "" || port === "" || maxConnections === "" || timeout === "" || maxMemory === "" || maxCpu === "" || logLevel === "" || logFile === "" || authMethod === "") {
-            document.getElementById("errorMessage").innerHTML = "All fields are required.";
-            document.getElementById("errorMessage").style.display = "block";
+    // Funzione per mostrare la finestra di dialogo OTP
+    function showOtpDialog() {
+        if (!validateAuthFields()) {
             return false;
         }
 
-        // Logica per salvare le impostazioni sul server (da implementare)
-
-        alert("Settings saved successfully");
+        var modal = document.getElementById("otpModal");
+        modal.style.display = "block";
         return false; // Evita l'invio del form
+    }
+
+    // Funzione per chiudere la finestra di dialogo OTP
+    function closeOtpDialog() {
+        var modal = document.getElementById("otpModal");
+        modal.style.display = "none";
+    }
+
+    // Funzione per validare l'OTP
+    function validateOtp() {
+        var otpInput = document.getElementById("otpInput").value.trim();
+        var otpErrorMessage = document.getElementById("otpErrorMessage");
+
+        if (otpInput === "" || otpInput.length !== 6) {
+            otpErrorMessage.style.display = "block";
+            return false;
+        }
+
+        // Simula la validazione OTP sempre fallita
+        otpErrorMessage.style.display = "block";
+        return false;
     }
 </script>
 </body>
