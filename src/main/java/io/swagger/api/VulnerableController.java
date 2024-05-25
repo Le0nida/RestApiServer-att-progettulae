@@ -1,31 +1,51 @@
 package io.swagger.api;
 
+import io.swagger.model.User;
 import io.swagger.model.VulnerableUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-@RestController
-@RequestMapping("/vulnerable")
+@Controller
+@RequestMapping("/management")
 public class VulnerableController {
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private UserRepository userRepository;
 
     // Simulated SQL Injection Vulnerability
-    @GetMapping("/api/user-info")
-    public List<VulnerableUser> searchUsers(@RequestParam String searchType, @RequestParam String searchTerm) {
+    @GetMapping("/users-info")
+    public String searchUsersPage(Model model) {
+        // Populate model with initial data
+        model.addAttribute("searchTypes", Arrays.asList("username", "email", "fullName", "gender", "birthdate"));
+        model.addAttribute("users", new ArrayList<>()); // Initial empty list of users
+        return "vulnerabilities/users-info";
+    }
+
+    @PostMapping("/users-info")
+    public String searchUsers(@RequestParam String searchType, @RequestParam String searchTerm, Model model) {
+
+        // Construct the SQL query with potential SQL injection vulnerability
         String query = "SELECT * FROM users WHERE " + searchType + " = '" + searchTerm + "'";
-        return executeQuery(query);
+
+        // Execute the potentially vulnerable query
+        List<VulnerableUser> users = executeQuery(query);
+
+        // Add the retrieved users to the model
+        model.addAttribute("searchTypes", Arrays.asList("username", "email", "fullName", "gender", "birthdate"));
+        model.addAttribute("users", users);
+
+        // Return the template name for rendering
+        return "vulnerabilities/users-info";
     }
 
     private List<VulnerableUser> executeQuery(String query) {
@@ -60,48 +80,24 @@ public class VulnerableController {
     }
 
     // Simulated XSS Vulnerability
-    @GetMapping("/old-profile")
-    public String xss(@RequestParam String input) {
+    @GetMapping("/userprofile")
+    public String xss(@RequestParam String username, Model model) {
+        boolean userExists = userRepository.existsByUsername(username);
 
-        return "<!DOCTYPE html>\n" +
-                "<html lang='en'>\n" +
-                "<head>\n" +
-                "    <meta charset='UTF-8'>\n" +
-                "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>\n" +
-                "    <title>Old VulnerableUser Profile</title>\n" +
-                "    <style>\n" +
-                "        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }\n" +
-                "        .container { width: 80%; margin: auto; }\n" +
-                "        header, footer { background-color: #f4f4f4; padding: 10px 0; text-align: center; }\n" +
-                "        nav { background: #333; color: #fff; padding: 10px 0; text-align: center; }\n" +
-                "        nav a { color: #fff; margin: 0 10px; text-decoration: none; }\n" +
-                "    </style>\n" +
-                "</head>\n" +
-                "<body>\n" +
-                "    <header>\n" +
-                "        <h1>Company Name</h1>\n" +
-                "    </header>\n" +
-                "    <nav>\n" +
-                "        <a href='/home'>Home</a>\n" +
-                "        <a href='/old-profile'>Profile</a>\n" +
-                "        <a href='/contact'>Contact</a>\n" +
-                "    </nav>\n" +
-                "    <div class='container'>\n" +
-                "        <h2>Old VulnerableUser Profile</h2>\n" +
-                "        <p>Welcome, <span id='username'>" + input + "</span>!</p>\n" +
-                "        <p>Your role: <span id='userRole'>user</span></p>\n" +
-                "        <p>Your email: <span id='userEmail'>" + input + "@example.com</span></p>\n" +
-                "        <script>\n" +
-                "            // Potentially vulnerable script\n" +
-                "            console.log('VulnerableUser input: " + input + "');\n" +
-                "        </script>\n" +
-                "    </div>\n" +
-                "    <footer>\n" +
-                "        <p>Contact us at <a href='mailto:support@example.com'>support@example.com</a></p>\n" +
-                "    </footer>\n" +
-                "</body>\n" +
-                "</html>";
+        User user;
+        if (userExists) {
+            user = userRepository.findByUsername(username).get(0); // Presumendo che `findByUsername` ritorni una lista
+        } else {
+            user = new User();
+            user.setUsername(username);
+        }
+
+        model.addAttribute("userExists", userExists);
+        model.addAttribute("user", user);
+
+        return "vulnerabilities/old-profile";
     }
+
 
     // Define safe commands and their simulated outputs
     private static final Map<String, String> safeCommands = new HashMap<>();
@@ -137,53 +133,36 @@ public class VulnerableController {
     }
 
     // Simulated Remote Code Execution (RCE) Vulnerability
-    @GetMapping("/execute-command")
-    public ResponseEntity<String> executeCommand(@RequestParam String command) {
-        // Log the attempted RCE
-        System.out.println("Attempted RCE with command: " + command);
+    @GetMapping("/command-exec")
+    public ResponseEntity<String> executeCommand(@RequestParam String command, @RequestParam(required = false) String pin) {
 
+        // Check if the command is safe or dangerous
+        boolean isSafeCommand = safeCommands.containsKey(command);
+        boolean isDangerousCommand = dangerousCommands.containsKey(command);
+
+        // If it's a dangerous command and a pin is required
+        if (isDangerousCommand && pin == null) {
+            return ResponseEntity.ok("Error: A PIN is required to execute dangerous commands.");
+        }
+
+        // If it's a dangerous command and the pin is incorrect
+        if (isDangerousCommand) {
+            return ResponseEntity.ok("Error: Incorrect PIN. Command execution not authorized.");
+        }
+
+        // If it's a dangerous command and the pin is correct, or if it's a safe command
         String simulatedOutput;
-        if (safeCommands.containsKey(command)) {
+        if (isSafeCommand) {
             simulatedOutput = safeCommands.get(command);
-        } else simulatedOutput = dangerousCommands.getOrDefault(command, "Error: Command not recognized.");
+        } else {
+            simulatedOutput = "Error: Command not recognized.";
+        }
 
-        // Return a more complex and realistic HTML page
-        return ResponseEntity.ok("<!DOCTYPE html>\n" +
-                "<html lang='en'>\n" +
-                "<head>\n" +
-                "    <meta charset='UTF-8'>\n" +
-                "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>\n" +
-                "    <title>Admin Command Execution</title>\n" +
-                "    <style>\n" +
-                "        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }\n" +
-                "        .container { width: 80%; margin: auto; }\n" +
-                "        header, footer { background-color: #f4f4f4; padding: 10px 0; text-align: center; }\n" +
-                "        nav { background: #333; color: #fff; padding: 10px 0; text-align: center; }\n" +
-                "        nav a { color: #fff; margin: 0 10px; text-decoration: none; }\n" +
-                "        pre { background-color: #eee; padding: 10px; border: 1px solid #ccc; }\n" +
-                "    </style>\n" +
-                "</head>\n" +
-                "<body>\n" +
-                "    <header>\n" +
-                "        <h1>Admin Panel</h1>\n" +
-                "    </header>\n" +
-                "    <nav>\n" +
-                "        <a href='/home'>Home</a>\n" +
-                "        <a href='/old-admin/execute-command'>Execute Command</a>\n" +
-                "        <a href='/contact'>Contact</a>\n" +
-                "    </nav>\n" +
-                "    <div class='container'>\n" +
-                "        <h2>Command Execution</h2>\n" +
-                "        <p>Command: <strong>" + command + "</strong></p>\n" +
-                "        <p>Output:</p>\n" +
-                "        <pre>" + simulatedOutput + "</pre>\n" +
-                "        <footer>\n" +
-                "            <p>Contact us at <a href='mailto:support@example.com'>support@example.com</a></p>\n" +
-                "        </footer>\n" +
-                "    </div>\n" +
-                "</body>\n" +
-                "</html>");
+        // Return the simulated output as plain text
+        return ResponseEntity.ok(simulatedOutput);
     }
+
+
 
     private static final Map<String, String> fakeFileContents = new HashMap<>();
     static {
@@ -197,121 +176,50 @@ public class VulnerableController {
     }
 
     // Simulated Directory Traversal Vulnerability
-    @GetMapping("/dir-traversal")
+    @GetMapping("/file")
     public ResponseEntity<String> directoryTraversal(@RequestParam String filePath) {
-        // Log the attempted Directory Traversal
-        System.out.println("Attempted Directory Traversal with filePath: " + filePath);
+        // Retrieve the fake file content
+        String fakeFileContent = fakeFileContents.getOrDefault(filePath, "File not found: " + filePath);
 
-        String fakeFileContent = fakeFileContents.getOrDefault(filePath, "Fake file content for " + filePath);
-
-        // Return a more complex and realistic HTML page
-        return ResponseEntity.ok("<!DOCTYPE html>\n" +
-                "<html lang='en'>\n" +
-                "<head>\n" +
-                "    <meta charset='UTF-8'>\n" +
-                "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>\n" +
-                "    <title>File Viewer</title>\n" +
-                "    <style>\n" +
-                "        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }\n" +
-                "        .container { width: 80%; margin: auto; }\n" +
-                "        header, footer { background-color: #f4f4f4; padding: 10px 0; text-align: center; }\n" +
-                "        nav { background: #333; color: #fff; padding: 10px 0; text-align: center; }\n" +
-                "        nav a { color: #fff; margin: 0 10px; text-decoration: none; }\n" +
-                "        pre { background-color: #eee; padding: 10px; border: 1px solid #ccc; white-space: pre-wrap; word-wrap: break-word; }\n" +
-                "    </style>\n" +
-                "</head>\n" +
-                "<body>\n" +
-                "    <header>\n" +
-                "        <h1>File Viewer</h1>\n" +
-                "    </header>\n" +
-                "    <nav>\n" +
-                "        <a href='/home'>Home</a>\n" +
-                "        <a href='/old-admin/dir-traversal'>File Viewer</a>\n" +
-                "        <a href='/contact'>Contact</a>\n" +
-                "    </nav>\n" +
-                "    <div class='container'>\n" +
-                "        <h2>Viewing File: " + filePath + "</h2>\n" +
-                "        <pre>" + fakeFileContent + "</pre>\n" +
-                "        <footer>\n" +
-                "            <p>Contact us at <a href='mailto:support@example.com'>support@example.com</a></p>\n" +
-                "        </footer>\n" +
-                "    </div>\n" +
-                "</body>\n" +
-                "</html>");
+        // Return the content as plain text
+        return ResponseEntity.ok(fakeFileContent);
     }
 
-    private static final Map<String, String> dangerousActions = new HashMap<>();
-    static {
-        dangerousActions.put("deleteUser", "Simulated: VulnerableUser account deleted.");
-        dangerousActions.put("shutdownSystem", "Simulated: System shutdown.");
-        dangerousActions.put("reformatDisk", "Simulated: Disk reformatted.");
-        dangerousActions.put("disableNetwork", "Simulated: Network disabled.");
+
+
+    @GetMapping("/user-management")
+    public ResponseEntity<String> userManagement() {
+        return deprecatedResourcePage();
     }
 
-    @PostMapping("/deserialize")
-    public ResponseEntity<String> insecureDeserialization(@RequestBody byte[] serializedObject) {
-        // Log the attempted Deserialization
-        System.out.println("Attempted Insecure Deserialization");
+    @GetMapping("/user-profile")
+    public ResponseEntity<String> userProfile() {
+        return deprecatedResourcePage();
+    }
 
-        String simulatedOutput;
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(serializedObject);
-             ObjectInputStream ois = new ObjectInputStream(bis)) {
+    @GetMapping("/server-commands")
+    public ResponseEntity<String> serverCommands() {
+        return deprecatedResourcePage();
+    }
 
-            // Simulate deserialization
-            Object deserializedObject = ois.readObject();
-            System.out.println("Deserialized object: " + deserializedObject);
+    @GetMapping("/file-access")
+    public ResponseEntity<String> fileAccess() {
+        return deprecatedResourcePage();
+    }
 
-            // Check if the deserialized object has a dangerous action
-            if (deserializedObject instanceof Map) {
-                Map<String, String> deserializedMap = (Map<String, String>) deserializedObject;
-                String action = deserializedMap.get("action");
+    @GetMapping("/admin-dashboard")
+    public ResponseEntity<String> adminDashboard() {
+        return deprecatedResourcePage();
+    }
 
-                if (dangerousActions.containsKey(action)) {
-                    simulatedOutput = dangerousActions.get(action);
-                } else {
-                    simulatedOutput = "Deserialized object: " + deserializedMap.toString();
-                }
-            } else {
-                simulatedOutput = "Deserialized object of type: " + deserializedObject.getClass().getName();
-            }
-        } catch (Exception e) {
-            simulatedOutput = "Error during deserialization: " + e.getMessage();
-        }
+    @GetMapping("/user-logs")
+    public ResponseEntity<String> userLogs() {
+        return deprecatedResourcePage();
+    }
 
-        // Return a more complex and realistic HTML page
-        return ResponseEntity.ok("<!DOCTYPE html>\n" +
-                "<html lang='en'>\n" +
-                "<head>\n" +
-                "    <meta charset='UTF-8'>\n" +
-                "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>\n" +
-                "    <title>Deserialization Result</title>\n" +
-                "    <style>\n" +
-                "        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }\n" +
-                "        .container { width: 80%; margin: auto; }\n" +
-                "        header, footer { background-color: #f4f4f4; padding: 10px 0; text-align: center; }\n" +
-                "        nav { background: #333; color: #fff; padding: 10px 0; text-align: center; }\n" +
-                "        nav a { color: #fff; margin: 0 10px; text-decoration: none; }\n" +
-                "        pre { background-color: #eee; padding: 10px; border: 1px solid #ccc; white-space: pre-wrap; word-wrap: break-word; }\n" +
-                "    </style>\n" +
-                "</head>\n" +
-                "<body>\n" +
-                "    <header>\n" +
-                "        <h1>Deserialization Result</h1>\n" +
-                "    </header>\n" +
-                "    <nav>\n" +
-                "        <a href='/home'>Home</a>\n" +
-                "        <a href='/old-admin/deserialize'>Deserialize</a>\n" +
-                "        <a href='/contact'>Contact</a>\n" +
-                "    </nav>\n" +
-                "    <div class='container'>\n" +
-                "        <h2>Deserialized Object:</h2>\n" +
-                "        <pre>" + simulatedOutput + "</pre>\n" +
-                "        <footer>\n" +
-                "            <p>Contact us at <a href='mailto:support@example.com'>support@example.com</a></p>\n" +
-                "        </footer>\n" +
-                "    </div>\n" +
-                "</body>\n" +
-                "</html>");
+    private ResponseEntity<String> deprecatedResourcePage() {
+        String htmlContent = "<html><body><h1>Resource Not Managed</h1><p>This resource is no longer managed.</p></body></html>";
+        return ResponseEntity.ok(htmlContent);
     }
 }
 
