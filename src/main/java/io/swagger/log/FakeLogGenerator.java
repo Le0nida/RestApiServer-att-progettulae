@@ -15,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class FakeLogGenerator {
@@ -50,6 +51,14 @@ public class FakeLogGenerator {
 
     @Scheduled(fixedRate = 10000) // Ogni 10 secondi
     public void generateLog() {
+        int randomDelaySeconds = generateRandomDelaySeconds();
+        try {
+            Thread.sleep(randomDelaySeconds * 1000); // Converti secondi in millisecondi
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.err.println("Interruzione durante l'attesa casuale.");
+        }
+
         String level = getRandomElement(LEVELS);
         String user = getRandomElement(USERS);
         String ip = "192.168.1." + RANDOM.nextInt(256);
@@ -73,6 +82,11 @@ public class FakeLogGenerator {
         String logEntry = String.format("%s , %s , %s , IP: %s", formattedDate, level, message, ip);
         logToFile(logEntry);
         //logMessage(level, message);
+    }
+
+    private int generateRandomDelaySeconds() {
+        // Genera un valore casuale tra 3 e 50 secondi (incluso)
+        return ThreadLocalRandom.current().nextInt(3, 51);
     }
 
     private void logToFile(String logEntry) {
