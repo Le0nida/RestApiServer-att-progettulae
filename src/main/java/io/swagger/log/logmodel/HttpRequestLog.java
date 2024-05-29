@@ -154,29 +154,15 @@ public class HttpRequestLog {
 
     private String getRequestBody(HttpServletRequest request) {
         StringBuilder stringBuilder = new StringBuilder();
-        BufferedReader bufferedReader = null;
         try {
-            InputStream inputStream = request.getInputStream();
-            if (inputStream != null) {
-                bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-                char[] charBuffer = new char[128];
-                int bytesRead = -1;
-                while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {
-                    stringBuilder.append(charBuffer, 0, bytesRead);
-                }
-            } else {
-                stringBuilder.append("");
+            BufferedReader bufferedReader = request.getReader();
+            char[] charBuffer = new char[128];
+            int bytesRead;
+            while ((bytesRead = bufferedReader.read(charBuffer)) != -1) {
+                stringBuilder.append(charBuffer, 0, bytesRead);
             }
         } catch (IOException ex) {
             ex.printStackTrace();
-        } finally {
-            if (bufferedReader != null) {
-                try {
-                    bufferedReader.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
         }
         return stringBuilder.toString();
     }

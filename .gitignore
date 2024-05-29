@@ -6,3 +6,5 @@ logs/application.log
 /logs
 /logs
 /target/classes
+/target/classes
+/target
