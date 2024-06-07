@@ -38,16 +38,16 @@
             <th>Email</th>
             <th>Full Name</th>
             <th>Gender</th>
-            <th>Birthdate</th>
+            <th>Job Title</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="user : ${users}">
             <td th:text="${user.username}">Username</td>
             <td th:text="${user.email}">Email</td>
-            <td th:text="${user.fullName}">Full Name</td>
+            <td th:text="${user.firstName + ' ' + user.lastName}">Full Name</td>
             <td th:text="${user.gender}">Gender</td>
-            <td th:text="${user.birthdate}">Birthdate</td>
+            <td th:text="${user.jobTitle}">Job Title</td>
         </tr>
         </tbody>
     </table>

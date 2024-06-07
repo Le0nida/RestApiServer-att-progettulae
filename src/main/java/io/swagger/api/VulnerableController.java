@@ -26,7 +26,7 @@ public class VulnerableController {
     @GetMapping("/users-info")
     public String searchUsersPage(Model model) {
         // Populate model with initial data
-        model.addAttribute("searchTypes", Arrays.asList("username", "email", "fullName", "gender", "birthdate"));
+        model.addAttribute("searchTypes", Arrays.asList("username", "email", "first_name", "last_name", "gender", "job_title"));
         model.addAttribute("users", new ArrayList<>()); // Initial empty list of users
         return "vulnerabilities/users-info";
     }
@@ -35,13 +35,13 @@ public class VulnerableController {
     public String searchUsers(@RequestParam String searchType, @RequestParam String searchTerm, Model model) {
 
         // Construct the SQL query with potential SQL injection vulnerability
-        String query = "SELECT * FROM users WHERE " + searchType + " = '" + searchTerm + "'";
+        String query = "SELECT * FROM jnktkmz_vulnuser WHERE " + searchType + " = '" + searchTerm + "'";
 
         // Execute the potentially vulnerable query
         List<VulnerableUser> users = executeQuery(query);
 
         // Add the retrieved users to the model
-        model.addAttribute("searchTypes", Arrays.asList("username", "email", "fullName", "gender", "birthdate"));
+        model.addAttribute("searchTypes", Arrays.asList("username", "email", "first_name", "last_name", "gender", "job_title"));
         model.addAttribute("users", users);
 
         // Return the template name for rendering
@@ -52,7 +52,7 @@ public class VulnerableController {
         List<VulnerableUser> users = new ArrayList<>();
         try {
             // Connessione al database (in un ambiente di produzione, utilizzare un pool di connessioni)
-            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "username", "password");
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/fakeDataDb?allowPublicKeyRetrieval=true", "root", "cybersecdcg");
 
             // Esecuzione della query
             Statement statement = connection.createStatement();
@@ -61,11 +61,12 @@ public class VulnerableController {
             // Elaborazione dei risultati
             while (resultSet.next()) {
                 VulnerableUser user = new VulnerableUser();
-                //user.setUsername(resultSet.getString("username"));
+                user.setUsername(resultSet.getString("username"));
                 user.setEmail(resultSet.getString("email"));
-                //user.setFullName(resultSet.getString("full_name"));
+                user.setFirstName(resultSet.getString("first_name"));
+                user.setLastName(resultSet.getString("last_name"));
                 user.setGender(resultSet.getString("gender"));
-                //user.setBirthdate(resultSet.getString("birthdate"));
+                user.setJobTitle(resultSet.getString("job_title"));
                 users.add(user);
             }
 
@@ -166,12 +167,12 @@ public class VulnerableController {
 
     private static final Map<String, String> fakeFileContents = new HashMap<>();
     static {
-        fakeFileContents.put("/etc/passwd", "root:x:0:0:root:/root:/bin/bash\nuser:x:1000:1000:user:/home/user:/bin/bash\n");
-        fakeFileContents.put("/etc/shadow", "root:$6$randomsalt$encryptedpassword:18000:0:99999:7:::\nuser:$6$randomsalt$encryptedpassword:18000:0:99999:7:::\n");
-        fakeFileContents.put("/var/www/html/index.php", "<?php\n// Sample PHP file\necho 'Hello, world!';\n?>");
-        fakeFileContents.put("/var/log/auth.log", "May 22 12:34:56 localhost sshd[12345]: Accepted password for user from 192.168.0.100 port 22 ssh2");
-        fakeFileContents.put("/home/user/.ssh/id_rsa", "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEArandomfakekeydata\n-----END RSA PRIVATE KEY-----");
-        fakeFileContents.put("/home/user/Documents/secret.txt", "VGhpcyBpcyBhIHNhbXBsZSBzZWNyZXQgZG9jdW1lbnQuIFBsZWFzZSBjb250YWN0IHlvdXIgc3lzdGVtIGFkbWluaXN0cmF0b3IgZm9yIG1vcmUgaW5mb3JtYXRpb24u");
+        fakeFileContents.put("../../../etc/passwd", "root:x:0:0:root:/root:/bin/bash\nuser:x:1000:1000:user:/home/user:/bin/bash\n");
+        fakeFileContents.put("../../../etc/shadow", "root:$6$randomsalt$encryptedpassword:18000:0:99999:7:::\nuser:$6$randomsalt$encryptedpassword:18000:0:99999:7:::\n");
+        fakeFileContents.put("../../../var/www/html/index.php", "<?php\n// Sample PHP file\necho 'Hello, world!';\n?>");
+        fakeFileContents.put("../../../var/log/auth.log", "May 22 12:34:56 localhost sshd[12345]: Accepted password for user from 192.168.0.100 port 22 ssh2");
+        fakeFileContents.put("../home/user/.ssh/id_rsa", "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEArandomfakekeydata\n-----END RSA PRIVATE KEY-----");
+        fakeFileContents.put("../home/user/Documents/secret.txt", "VGhpcyBpcyBhIHNhbXBsZSBzZWNyZXQgZG9jdW1lbnQuIFBsZWFzZSBjb250YWN0IHlvdXIgc3lzdGVtIGFkbWluaXN0cmF0b3IgZm9yIG1vcmUgaW5mb3JtYXRpb24u");
         // Add more fake file paths and contents as needed
     }
 
