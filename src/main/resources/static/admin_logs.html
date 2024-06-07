@@ -12,6 +12,47 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filters input,
+        .filters select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .filters button {
+            margin-bottom: 15px;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            padding: 10px 15px;
+            margin: 0 5px;
+            background-color: #ffb700;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .pagination button:hover {
+            background-color: #ecda97;
+        }
+
+        .pagination span {
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
         }
     </style>
 </head>
@@ -23,7 +64,7 @@
 <div class="container">
 
     <div class="controls">
-        <div>
+        <div class="filters">
             <input type="text" id="search" placeholder="Search logs...">
             <input type="date" id="filterDate">
             <select id="filterLevel">
@@ -32,7 +73,7 @@
                 <option value="WARN">WARN</option>
                 <option value="ERROR">ERROR</option>
             </select>
-            <button class="btn" onclick="filterLogs()">Filter</button>
+            <button class="btn" onclick="applyFilterLogs()">Filter</button>
         </div>
         <button class="btn" onclick="exportLogs()">Export Logs</button>
     </div>
@@ -47,61 +88,98 @@
         </tr>
         </thead>
         <tbody id="logTableBody">
-        <!-- I dati dei log verranno aggiunti dinamicamente qui -->
+        <!-- Log data will be dynamically added here -->
         </tbody>
     </table>
+
+    <div class="pagination">
+        <button onclick="previousPage()">Previous</button>
+        <span id="pageInfo"></span>
+        <button onclick="nextPage()">Next</button>
+    </div>
 </div>
 
 <script>
-    // Funzione per recuperare i log dal server
-    async function fetchLogs() {
-        const response = await fetch('/api/logs');
-        const logs = await response.json();
-        displayLogs(logs);
+    let currentPage = 1;
+    const rowsPerPage = 50;
+    let logs = [];
+
+    function fetchLogs() {
+        fetch('/api/logs')
+            .then(response => response.json())
+            .then(data => {
+                logs = data;
+                filterLogs(true); // Filter logs by default to show only today's logs
+            });
     }
 
-    // Funzione per visualizzare i log
-    function displayLogs(logs) {
+    function applyFilterLogs() {
+        currentPage = 1;
+        filterLogs()
+    }
+
+    function displayLogs(filteredLogs) {
         const logTableBody = document.getElementById('logTableBody');
         logTableBody.innerHTML = '';
 
-        logs.forEach(log => {
-            const [date, level, message, details] = log.split(",");
-            const row = logTableBody.insertRow();
-            row.insertCell(0).innerHTML = date;
-            row.insertCell(1).innerHTML = level;
-            row.insertCell(2).innerHTML = message;
-            row.insertCell(3).innerHTML = details;
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const paginatedLogs = filteredLogs.slice(start, end);
+
+        paginatedLogs.forEach(log => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${log.split(',')[0]}</td>
+                <td>${log.split(',')[1]}</td>
+                <td>${log.split(',')[2]}</td>
+                <td>${log.split(',')[3]}</td>
+            `;
+            logTableBody.appendChild(row);
         });
+
+        document.getElementById('pageInfo').innerText = `Showing ${start + 1} to ${Math.min(start + rowsPerPage, logs.length)} of ${logs.length}`;
     }
 
-    function filterLogs() {
+    function filterLogs(isInitialLoad = false) {
         const search = document.getElementById('search').value.toLowerCase();
         const filterDate = document.getElementById('filterDate').value;
         const filterLevel = document.getElementById('filterLevel').value;
 
-        const rows = document.querySelectorAll("#logTableBody tr");
-        rows.forEach(row => {
-            const dateString = row.cells[0].innerText;
-            const level = row.cells[1].innerText;
-            const message = row.cells[2].innerText.toLowerCase();
+        let filteredLogs = logs;
 
-            const logDate = new Date(dateString);
-            const inputDate = new Date(filterDate);
+        if (isInitialLoad) {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('filterDate').value = today;
+            filteredLogs = filteredLogs.filter(log => log.includes(today));
+        } else {
+            filteredLogs = filteredLogs.filter(log => {
+                const [date, level, message, details] = log.split(',');
+                const logDate = new Date(date).toISOString().split('T')[0];
+                const matchesSearch = message.toLowerCase().includes(search);
+                const matchesDate = filterDate ? logDate === filterDate : true;
+                const matchesLevel = filterLevel ? level === filterLevel : true;
 
-            const matchesSearch = message.includes(search);
-            const matchesDate = filterDate ? logDate.toDateString() === inputDate.toDateString() : true;
-            const matchesLevel = filterLevel ? level === filterLevel : true;
+                return matchesSearch && matchesDate && matchesLevel;
+            });
+        }
 
-            if (matchesSearch && matchesDate && matchesLevel) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
+        displayLogs(filteredLogs);
     }
 
-    // Funzione per esportare i log
+    function previousPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            filterLogs();
+        }
+    }
+
+    function nextPage() {
+        if ((currentPage * rowsPerPage) < logs.length) {
+            currentPage++;
+            filterLogs();
+        }
+    }
+
     function exportLogs() {
         let csvContent = "data:text/csv;charset=utf-8,";
         csvContent += "Date,Level,Message,Details\n";
@@ -111,7 +189,8 @@
             const date = row.cells[0].innerText;
             const level = row.cells[1].innerText;
             const message = row.cells[2].innerText;
-            const rowContent = `${date},${level},${message}\n`;
+            const details = row.cells[3].innerText;
+            const rowContent = `${date},${level},${message},${details}\n`;
             csvContent += rowContent;
         });
 
@@ -124,7 +203,6 @@
         document.body.removeChild(link);
     }
 
-    // Recupera i log al caricamento della pagina
     window.onload = fetchLogs;
 </script>
 

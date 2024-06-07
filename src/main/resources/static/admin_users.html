@@ -195,7 +195,7 @@
         <p>Enter 6-digit OTP code received on your mail inbox.</p>
         <input type="text" id="otpInput" class="otp-input" maxlength="6" placeholder="Enter OTP" required>
         <button class="btn" onclick="validateOtp()">Submit</button>
-        <div id="otpErrorMessage" class="otp-error-message" style="display: none;">Codice OTP sbagliato</div>
+        <div id="otpErrorMessage" class="otp-error-message" style="display: none;">Wrong OTP code</div>
     </div>
 </div>
 
@@ -326,7 +326,7 @@
 
         // Simula la validazione OTP sempre fallita
         otpErrorMessage.style.display = "block";
-        otpErrorMessage.innerText = "Codice OTP sbagliato";
+        otpErrorMessage.innerText = "Wrong OTP code";
 
         // Chiamata alla funzione di callback se OTP è valida (sempre fallita in questo caso)
         if (otpCallback) {
