@@ -65,9 +65,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .invalidSessionUrl("/session-expired")
                 .maximumSessions(1)
                 .expiredUrl("/session-expired")
-                .and()
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                .sessionFixation().migrateSession();
+                .maxSessionsPreventsLogin(true);
     }
 
     @Bean
