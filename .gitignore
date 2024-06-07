@@ -8,3 +8,4 @@ logs/application.log
 /target/classes
 /target/classes
 /target
+*.class
