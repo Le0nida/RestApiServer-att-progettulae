@@ -118,23 +118,93 @@
         </tr>
         </thead>
         <tbody id="userTableBody">
-        <!-- Esempio di dati utente -->
+        <!-- Admin user -->
         <tr>
-            <td>1</td>
-            <td>john_doe</td>
-            <td>john@example.com</td>
+            <td>101</td>
+            <td>admin</td>
+            <td>admin@adsyscmp.com</td>
             <td>Admin</td>
             <td>
-                <button class="btn btn-edit" onclick="openModal('editUserModal', 1)">Edit</button>
-                <button class="btn btn-delete" onclick="deleteUser(1)">Delete</button>
+                <button class="btn btn-edit" onclick="showAdminError()">Edit</button>
+                <button class="btn btn-delete" onclick="showAdminError()">Delete</button>
             </td>
         </tr>
-        <!-- I dati degli utenti verranno aggiunti dinamicamente qui -->
+        <!-- Seven SuperUser accounts -->
+        <tr>
+            <td>102</td>
+            <td>johndoe</td>
+            <td>john.doe@adsyscmp.com</td>
+            <td>SuperUser</td>
+            <td>
+                <button class="btn btn-edit" onclick="openModal('editUserModal', 10002)">Edit</button>
+                <button class="btn btn-delete" onclick="deleteUser(10002)">Delete</button>
+            </td>
+        </tr>
+        <tr>
+            <td>105</td>
+            <td>janedoe</td>
+            <td>jane.doe@adsyscmp.com</td>
+            <td>SuperUser</td>
+            <td>
+                <button class="btn btn-edit" onclick="openModal('editUserModal', 10003)">Edit</button>
+                <button class="btn btn-delete" onclick="deleteUser(10003)">Delete</button>
+            </td>
+        </tr>
+        <tr>
+            <td>106</td>
+            <td>alexsmith</td>
+            <td>alex.smith@adsyscmp.com</td>
+            <td>SuperUser</td>
+            <td>
+                <button class="btn btn-edit" onclick="openModal('editUserModal', 10004)">Edit</button>
+                <button class="btn btn-delete" onclick="deleteUser(10004)">Delete</button>
+            </td>
+        </tr>
+        <tr>
+            <td>110</td>
+            <td>emilyjones</td>
+            <td>emily.jones@adsyscmp.com</td>
+            <td>SuperUser</td>
+            <td>
+                <button class="btn btn-edit" onclick="openModal('editUserModal', 10005)">Edit</button>
+                <button class="btn btn-delete" onclick="deleteUser(10005)">Delete</button>
+            </td>
+        </tr>
+        <tr>
+            <td>111</td>
+            <td>michaelbrown</td>
+            <td>michael.brown@adsyscmp.com</td>
+            <td>SuperUser</td>
+            <td>
+                <button class="btn btn-edit" onclick="openModal('editUserModal', 10006)">Edit</button>
+                <button class="btn btn-delete" onclick="deleteUser(10006)">Delete</button>
+            </td>
+        </tr>
+        <tr>
+            <td>117</td>
+            <td>sarawilson</td>
+            <td>sara.wilson@adsyscmp.com</td>
+            <td>SuperUser</td>
+            <td>
+                <button class="btn btn-edit" onclick="openModal('editUserModal', 10007)">Edit</button>
+                <button class="btn btn-delete" onclick="deleteUser(10007)">Delete</button>
+            </td>
+        </tr>
+        <tr>
+            <td>118</td>
+            <td>chrismiller</td>
+            <td>chris.miller@adsyscmp.com</td>
+            <td>SuperUser</td>
+            <td>
+                <button class="btn btn-edit" onclick="openModal('editUserModal', 10008)">Edit</button>
+                <button class="btn btn-delete" onclick="deleteUser(10008)">Delete</button>
+            </td>
+        </tr>
         </tbody>
     </table>
 </div>
 
-<!-- Modal per aggiungere un utente -->
+<!-- Modal for adding a user -->
 <div id="addUserModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeModal('addUserModal')">&times;</span>
@@ -155,14 +225,14 @@
             <label for="addRole">Role:</label>
             <select id="addRole" name="role" required>
                 <option value="Admin">Admin</option>
-                <option value="User">User</option>
+                <option value="SuperUser">SuperUser</option>
             </select>
         </div>
         <button class="btn" onclick="addUser()">Add User</button>
     </div>
 </div>
 
-<!-- Modal per modificare un utente -->
+<!-- Modal for editing a user -->
 <div id="editUserModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeModal('editUserModal')">&times;</span>
@@ -180,14 +250,14 @@
             <label for="editRole">Role:</label>
             <select id="editRole" name="role" required>
                 <option value="Admin">Admin</option>
-                <option value="User">User</option>
+                <option value="SuperUser">SuperUser</option>
             </select>
         </div>
-        <button class="btn btn-edit" onclick="showOtpDialog('saveUser')">Save Changes</button>
+        <button class="btn" onclick="saveUser()">Save Changes</button>
     </div>
 </div>
 
-<!-- Finestra di dialogo OTP -->
+<!-- Modal for OTP -->
 <div id="otpModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeOtpDialog()">&times;</span>
@@ -199,14 +269,23 @@
     </div>
 </div>
 
+<!-- Modal for admin error -->
+<div id="adminErrorModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAdminError()">&times;</span>
+        <h2>Error</h2>
+        <p>You cannot modify or delete the current administrator from this interface.</p>
+    </div>
+</div>
+
 <script>
     let otpCallback = null;
+    let nextUserId = 119;
 
-    // Funzioni per aprire e chiudere i modali
+    // Functions to open and close modals
     function openModal(modalId, userId = null) {
         document.getElementById(modalId).style.display = "block";
         if (userId) {
-            // Carica i dati dell'utente nel modulo di modifica
             loadUserData(userId);
         }
     }
@@ -215,62 +294,50 @@
         document.getElementById(modalId).style.display = "none";
     }
 
-    // Funzione per aggiungere un utente
+    // Function to add a user
     function addUser() {
-        // Recupera i valori dal modulo
         const username = document.getElementById('addUsername').value;
         const email = document.getElementById('addEmail').value;
         const password = document.getElementById('addPassword').value;
         const role = document.getElementById('addRole').value;
 
-        // Logica per aggiungere l'utente al sistema (da implementare)
-
-        // Aggiungi una riga alla tabella utenti
         const tableBody = document.getElementById('userTableBody');
         const row = tableBody.insertRow();
-        row.insertCell(0).innerHTML = '2'; // ID dinamico (da implementare)
+        row.insertCell(0).innerHTML = nextUserId;
         row.insertCell(1).innerHTML = username;
         row.insertCell(2).innerHTML = email;
         row.insertCell(3).innerHTML = role;
         row.insertCell(4).innerHTML = `
-            <button class="btn btn-edit" onclick="openModal('editUserModal', 2)">Edit</button>
-            <button class="btn btn-delete" onclick="deleteUser(2)">Delete</button>
+            <button class="btn btn-edit" onclick="openModal('editUserModal', ${nextUserId})">Edit</button>
+            <button class="btn btn-delete" onclick="deleteUser(${nextUserId})">Delete</button>
         `;
+        nextUserId++;
 
-        // Chiudi il modale
         closeModal('addUserModal');
     }
 
-    // Funzione per caricare i dati di un utente nel modulo di modifica
+    // Function to load user data into the edit form
     function loadUserData(userId) {
-        // Logica per recuperare i dati dell'utente dal sistema (da implementare)
-
-        // Esempio di dati caricati
         const userData = {
             id: userId,
             username: 'john_doe',
-            email: 'john@example.com',
-            role: 'Admin'
+            email: 'john.doe@adsyscmp.com',
+            role: 'SuperUser'
         };
 
-        // Imposta i valori nel modulo
         document.getElementById('editUserId').value = userData.id;
         document.getElementById('editUsername').value = userData.username;
         document.getElementById('editEmail').value = userData.email;
         document.getElementById('editRole').value = userData.role;
     }
 
-    // Funzione per salvare le modifiche a un utente
+    // Function to save user changes
     function saveUser() {
-        // Recupera i valori dal modulo
         const userId = document.getElementById('editUserId').value;
         const username = document.getElementById('editUsername').value;
         const email = document.getElementById('editEmail').value;
         const role = document.getElementById('editRole').value;
 
-        // Logica per salvare le modifiche al sistema (da implementare)
-
-        // Aggiorna la riga nella tabella utenti
         const tableBody = document.getElementById('userTableBody');
         const rows = tableBody.rows;
         for (let i = 0; i < rows.length; i++) {
@@ -282,15 +349,11 @@
             }
         }
 
-        // Chiudi il modale
         closeModal('editUserModal');
     }
 
-    // Funzione per eliminare un utente
+    // Function to delete a user
     function deleteUser(userId) {
-        // Logica per eliminare l'utente dal sistema (da implementare)
-
-        // Rimuovi la riga dalla tabella utenti
         const tableBody = document.getElementById('userTableBody');
         const rows = tableBody.rows;
         for (let i = 0; i < rows.length; i++) {
@@ -301,20 +364,20 @@
         }
     }
 
-    // Funzione per mostrare la finestra di dialogo OTP
+    // Function to show the OTP dialog
     function showOtpDialog(callback) {
         otpCallback = callback;
         var modal = document.getElementById("otpModal");
         modal.style.display = "block";
     }
 
-    // Funzione per chiudere la finestra di dialogo OTP
+    // Function to close the OTP dialog
     function closeOtpDialog() {
         var modal = document.getElementById("otpModal");
         modal.style.display = "none";
     }
 
-    // Funzione per validare l'OTP
+    // Function to validate the OTP
     function validateOtp() {
         var otpInput = document.getElementById("otpInput").value.trim();
         var otpErrorMessage = document.getElementById("otpErrorMessage");
@@ -324,11 +387,9 @@
             return false;
         }
 
-        // Simula la validazione OTP sempre fallita
         otpErrorMessage.style.display = "block";
         otpErrorMessage.innerText = "Wrong OTP code";
 
-        // Chiamata alla funzione di callback se OTP è valida (sempre fallita in questo caso)
         if (otpCallback) {
             otpCallback();
         }
@@ -336,10 +397,20 @@
         return false;
     }
 
-    // Funzione di callback per salvare le modifiche
+    // Function for the save changes callback
     function saveChanges() {
-        // Chiamata alla funzione di salvataggio reale (esempio di callback)
         saveUser();
+    }
+
+    // Function to show admin error
+    function showAdminError() {
+        var modal = document.getElementById("adminErrorModal");
+        modal.style.display = "block";
+    }
+
+    function closeAdminError() {
+        var modal = document.getElementById("adminErrorModal");
+        modal.style.display = "none";
     }
 </script>
 
