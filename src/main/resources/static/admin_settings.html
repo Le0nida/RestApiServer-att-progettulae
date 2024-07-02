@@ -37,7 +37,6 @@
             margin-bottom: 5px;
         }
 
-        /* Stili per la finestra di dialogo OTP */
         .modal {
             display: none;
             position: fixed;
@@ -98,21 +97,21 @@
     <!-- Parametri di rete -->
     <h3>Network Settings</h3>
     <label for="server_host">Server Host:</label>
-    <input type="text" id="server_host" name="server_host" required>
+    <input type="text" id="server_host" name="server_host" required placeholder="api.example.com">
     <span class="help-text">Enter the hostname or IP address of the server.</span><br>
 
     <label for="server_port">Server Port (0-65535):</label>
-    <input type="number" id="server_port" name="server_port" required min="0" max="65535">
+    <input type="number" id="server_port" name="server_port" required min="0" max="65535" placeholder="443">
     <span class="help-text">Enter the port number for the server (0-65535).</span><br>
 
     <!-- Parametri del server -->
     <h3>Server Parameters</h3>
     <label for="max_connections">Max Connections:</label>
-    <input type="number" id="max_connections" name="max_connections" required min="1">
+    <input type="number" id="max_connections" name="max_connections" required min="1" placeholder="100">
     <span class="help-text">Enter the maximum number of connections allowed.</span><br>
 
     <label for="timeout">Timeout (ms):</label>
-    <input type="number" id="timeout" name="timeout" required min="1">
+    <input type="number" id="timeout" name="timeout" required min="1" placeholder="5000">
     <span class="help-text">Enter the timeout value in milliseconds.</span><br>
 
     <label for="enable_caching">Enable Caching:</label>
@@ -122,25 +121,25 @@
     <!-- Parametri di sicurezza -->
     <h3>Security Settings</h3>
     <label for="ssl_enabled">SSL Enabled:</label>
-    <input type="checkbox" id="ssl_enabled" name="ssl_enabled">
+    <input type="checkbox" id="ssl_enabled" name="ssl_enabled" checked>
     <span class="help-text">Check to enable SSL.</span><br>
 
     <label for="ssl_certificate">SSL Certificate Path:</label>
-    <input type="text" id="ssl_certificate" name="ssl_certificate" required>
+    <input type="text" id="ssl_certificate" name="ssl_certificate" required placeholder="/etc/ssl/certs/server.crt">
     <span class="help-text">Enter the path to the SSL certificate file.</span><br>
 
     <label for="security_headers">Security Headers:</label><br>
-    <textarea id="security_headers" name="security_headers"></textarea>
+    <textarea id="security_headers" name="security_headers" placeholder="Content-Security-Policy: default-src 'self';, X-Content-Type-Options: nosniff;"></textarea>
     <span class="help-text">Enter security headers separated by commas.</span><br>
 
     <!-- Parametri di gestione delle risorse -->
     <h3>Resource Management</h3>
     <label for="max_memory">Max Memory (MB):</label>
-    <input type="number" id="max_memory" name="max_memory" required min="1">
+    <input type="number" id="max_memory" name="max_memory" required min="1" placeholder="1024">
     <span class="help-text">Enter the maximum memory limit in megabytes.</span><br>
 
     <label for="max_cpu">Max CPU (%):</label>
-    <input type="number" id="max_cpu" name="max_cpu" required min="1" max="100">
+    <input type="number" id="max_cpu" name="max_cpu" required min="1" max="100" placeholder="80">
     <span class="help-text">Enter the maximum CPU usage percentage.</span><br>
 
     <!-- Parametri di logging -->
@@ -156,7 +155,7 @@
     <span class="help-text">Select the desired log level.</span><br>
 
     <label for="log_file">Log File:</label>
-    <input type="text" id="log_file" name="log_file" required>
+    <input type="text" id="log_file" name="log_file" required placeholder="/var/log/server.log">
     <span class="help-text">Enter the path to the log file.</span><br>
 
     <label for="enable_log_rotation">Enable Log Rotation:</label>
@@ -164,7 +163,7 @@
     <span class="help-text">Check to enable log rotation.</span><br>
 
     <label for="log_rotation_interval">Log Rotation Interval (days):</label>
-    <input type="number" id="log_rotation_interval" name="log_rotation_interval">
+    <input type="number" id="log_rotation_interval" name="log_rotation_interval" placeholder="7">
     <span class="help-text">Enter the log rotation interval in days.</span><br>
 
     <!-- Parametri di autorizzazione -->
@@ -183,11 +182,11 @@
     <div id="basicAuthFields" style="display: none;">
         <h3>Basic Auth Configuration</h3>
         <label for="basic_username">Username:</label>
-        <input type="text" id="basic_username" name="basic_username">
+        <input type="text" id="basic_username" name="basic_username" placeholder="admin">
         <span class="help-text">Enter the username for Basic Auth.</span><br>
 
         <label for="basic_password">Password:</label>
-        <input type="password" id="basic_password" name="basic_password">
+        <input type="password" id="basic_password" name="basic_password" placeholder="password123">
         <span class="help-text">Enter the password for Basic Auth.</span><br>
     </div>
 
@@ -195,11 +194,11 @@
     <div id="jwtAuthFields" style="display: none;">
         <h3>JWT Auth Configuration</h3>
         <label for="jwt_secret">JWT Secret:</label>
-        <input type="text" id="jwt_secret" name="jwt_secret">
+        <input type="text" id="jwt_secret" name="jwt_secret" placeholder="your_jwt_secret">
         <span class="help-text">Enter the JWT secret.</span><br>
 
         <label for="jwt_algorithm">JWT Algorithm:</label>
-        <input type="text" id="jwt_algorithm" name="jwt_algorithm">
+        <input type="text" id="jwt_algorithm" name="jwt_algorithm" placeholder="HS256">
         <span class="help-text">Enter the JWT algorithm.</span><br>
     </div>
 
@@ -207,18 +206,16 @@
     <div id="oauthFields" style="display: none;">
         <h3>OAuth Configuration</h3>
         <label for="oauth_client_id">Client ID:</label>
-        <input type="text" id="oauth_client_id" name="oauth_client_id">
+        <input type="text" id="oauth_client_id" name="oauth_client_id" placeholder="your_client_id">
         <span class="help-text">Enter the OAuth client ID.</span><br>
 
         <label for="oauth_client_secret">Client Secret:</label>
-        <input type="text" id="oauth_client_secret" name="oauth_client_secret">
+        <input type="text" id="oauth_client_secret" name="oauth_client_secret" placeholder="your_client_secret">
         <span class="help-text">Enter the OAuth client secret.</span><br>
 
         <label for="oauth_redirect_uri">Redirect URI:</label>
-        <input type="text" id="oauth_redirect_uri" name="oauth_redirect_uri">
+        <input type="text" id="oauth_redirect_uri" name="oauth_redirect_uri" placeholder="https://example.com/oauth/callback">
         <span class="help-text">Enter the OAuth redirect URI.</span><br>
-
-        <!-- Aggiungi altri campi necessari per OAuth -->
     </div>
 
     <!-- Aggiungi un messaggio di errore per i campi specifici di autenticazione -->
@@ -240,7 +237,6 @@
 </div>
 
 <script>
-    // Funzione per validare i campi specifici di autenticazione
     function validateAuthFields() {
         var authMethod = document.getElementById("auth_method").value;
         var errorMessage = document.getElementById("authErrorMessage");
@@ -275,24 +271,20 @@
             }
         }
 
-        // Se tutti i campi sono validi, nascondi il messaggio di errore e restituisci true
         errorMessage.style.display = "none";
         return true;
     }
 
-    // Funzione per mostrare i campi specifici in base all'autenticazione selezionata
     function showAuthFields() {
         var authMethod = document.getElementById("auth_method").value;
         var basicAuthFields = document.getElementById("basicAuthFields");
         var jwtAuthFields = document.getElementById("jwtAuthFields");
         var oauthFields = document.getElementById("oauthFields");
 
-        // Nascondi tutti i campi specifici
         basicAuthFields.style.display = "none";
         jwtAuthFields.style.display = "none";
         oauthFields.style.display = "none";
 
-        // Mostra i campi specifici solo se l'autenticazione è selezionata
         if (authMethod === "basic") {
             basicAuthFields.style.display = "block";
         } else if (authMethod === "jwt") {
@@ -302,7 +294,6 @@
         }
     }
 
-    // Funzione per mostrare la finestra di dialogo OTP
     function showOtpDialog() {
         if (!validateAuthFields()) {
             return false;
@@ -313,13 +304,11 @@
         return false; // Evita l'invio del form
     }
 
-    // Funzione per chiudere la finestra di dialogo OTP
     function closeOtpDialog() {
         var modal = document.getElementById("otpModal");
         modal.style.display = "none";
     }
 
-    // Funzione per validare l'OTP
     function validateOtp() {
         var otpInput = document.getElementById("otpInput").value.trim();
         var otpErrorMessage = document.getElementById("otpErrorMessage");
@@ -329,7 +318,6 @@
             return false;
         }
 
-        // Simula la validazione OTP sempre fallita
         otpErrorMessage.style.display = "block";
         return false;
     }
