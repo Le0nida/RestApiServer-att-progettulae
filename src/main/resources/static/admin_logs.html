@@ -84,7 +84,7 @@
             <th>Date</th>
             <th>Level</th>
             <th>Message</th>
-            <th>Details</th>
+            <th>IP</th>
         </tr>
         </thead>
         <tbody id="logTableBody">
@@ -103,41 +103,44 @@
     let currentPage = 1;
     const rowsPerPage = 50;
     let logs = [];
+    let filteredLogs = [];
 
     function fetchLogs() {
         fetch('/api/logs')
             .then(response => response.json())
             .then(data => {
                 logs = data;
+                logs.sort((a, b) => new Date(b.split(',')[0]) - new Date(a.split(',')[0])); // Sort logs from most recent to oldest
                 filterLogs(true); // Filter logs by default to show only today's logs
             });
     }
 
     function applyFilterLogs() {
         currentPage = 1;
-        filterLogs()
+        filterLogs();
     }
 
-    function displayLogs(filteredLogs) {
+    function displayLogs(logsToDisplay) {
         const logTableBody = document.getElementById('logTableBody');
         logTableBody.innerHTML = '';
 
         const start = (currentPage - 1) * rowsPerPage;
         const end = start + rowsPerPage;
-        const paginatedLogs = filteredLogs.slice(start, end);
+        const paginatedLogs = logsToDisplay.slice(start, end);
 
         paginatedLogs.forEach(log => {
             const row = document.createElement('tr');
+            const [date, level, message, ip] = log.split(',');
             row.innerHTML = `
-                <td>${log.split(',')[0]}</td>
-                <td>${log.split(',')[1]}</td>
-                <td>${log.split(',')[2]}</td>
-                <td>${log.split(',')[3]}</td>
+                <td>${date}</td>
+                <td>${level}</td>
+                <td>${message}</td>
+                <td>${ip}</td>
             `;
             logTableBody.appendChild(row);
         });
 
-        document.getElementById('pageInfo').innerText = `Showing ${start + 1} to ${Math.min(start + rowsPerPage, logs.length)} of ${logs.length}`;
+        document.getElementById('pageInfo').innerText = `Showing ${start + 1} to ${Math.min(start + rowsPerPage, logsToDisplay.length)} of ${logsToDisplay.length}`;
     }
 
     function filterLogs(isInitialLoad = false) {
@@ -145,7 +148,7 @@
         const filterDate = document.getElementById('filterDate').value;
         const filterLevel = document.getElementById('filterLevel').value;
 
-        let filteredLogs = logs;
+        filteredLogs = logs;
 
         if (isInitialLoad) {
             const today = new Date().toISOString().split('T')[0];
@@ -153,11 +156,11 @@
             filteredLogs = filteredLogs.filter(log => log.includes(today));
         } else {
             filteredLogs = filteredLogs.filter(log => {
-                const [date, level, message, details] = log.split(',');
+                const [date, level, message, ip] = log.split(',');
                 const logDate = new Date(date).toISOString().split('T')[0];
                 const matchesSearch = message.toLowerCase().includes(search);
                 const matchesDate = filterDate ? logDate === filterDate : true;
-                const matchesLevel = filterLevel ? level === filterLevel : true;
+                const matchesLevel = filterLevel ? level.toUpperCase().trim() === filterLevel : true;
 
                 return matchesSearch && matchesDate && matchesLevel;
             });
@@ -169,29 +172,23 @@
     function previousPage() {
         if (currentPage > 1) {
             currentPage--;
-            filterLogs();
+            displayLogs(filteredLogs);
         }
     }
 
     function nextPage() {
-        if ((currentPage * rowsPerPage) < logs.length) {
+        if ((currentPage * rowsPerPage) < filteredLogs.length) {
             currentPage++;
-            filterLogs();
+            displayLogs(filteredLogs);
         }
     }
 
     function exportLogs() {
         let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "Date,Level,Message,Details\n";
+        csvContent += "Date,Level,Message,IP\n";
 
-        const rows = document.querySelectorAll("#logTableBody tr");
-        rows.forEach(row => {
-            const date = row.cells[0].innerText;
-            const level = row.cells[1].innerText;
-            const message = row.cells[2].innerText;
-            const details = row.cells[3].innerText;
-            const rowContent = `${date},${level},${message},${details}\n`;
-            csvContent += rowContent;
+        filteredLogs.forEach(log => {
+            csvContent += log + "\n";
         });
 
         const encodedUri = encodeURI(csvContent);

@@ -21,8 +21,19 @@ import java.util.concurrent.ThreadLocalRandom;
 public class FakeLogGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(FakeLogGenerator.class);
-    private static final List<String> USERS = Arrays.asList("john_doe", "jane_smith", "alice_jones", "bob_brown", "charlie_clark");
-    private static final List<String> LEVELS = Arrays.asList("INFO", "INFO", "INFO", "WARN", "ERROR");
+    private static final List<String> USERS = Arrays.asList(
+            "michael_davis", "sarah_miller", "david_wilson", "emily_moore", "james_taylor",
+            "olivia_anderson", "daniel_thomas", "sophia_jackson", "matthew_white", "isabella_harris",
+            "joseph_martin", "mia_thompson", "noah_garcia", "ava_martinez", "benjamin_robinson",
+            "amelia_lee", "ethan_walker", "harper_hall", "lucas_allen", "ella_young",
+            "henry_king", "abigail_scott", "samuel_green", "lily_adams", "jacob_baker",
+            "charlotte_wright", "jackson_turner", "chloe_parker", "logan_campbell", "scarlett_evans",
+            "oliver_morgan", "amelia_sanders", "liam_reed", "sophia_morris", "william_bell",
+            "emma_murphy", "james_brooks", "ava_bennett", "elijah_richardson", "isabella_cox",
+            "lucas_washington", "mia_cole", "mason_fisher", "ella_simmons", "noah_hayes",
+            "amelia_russell", "jackson_perry", "sofia_wood", "henry_patterson", "grace_hughes"
+    );
+    private static final List<String> LEVELS = Arrays.asList("INFO", "INFO", "INFO", "INFO", "INFO", "WARN", "WARN", "ERROR");
     private static final Random RANDOM = new Random();
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -124,7 +135,7 @@ public class FakeLogGenerator {
                 break;
         }
 
-        String logEntry = String.format("%s , %s , %s , IP: %s", formattedDate, level, message, ip);
+        String logEntry = String.format("%s , %s , %s , %s", formattedDate, level, message, ip);
         logToFile(logEntry);
     }
 
