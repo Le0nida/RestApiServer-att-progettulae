@@ -1,5 +1,6 @@
 package io.swagger.api;
 
+import io.swagger.log.LogService;
 import io.swagger.model.User;
 import io.swagger.model.VulnerableUser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.servlet.http.HttpServletRequest;
 import java.sql.*;
 import java.util.*;
 
@@ -18,12 +20,24 @@ import java.util.*;
 @RequestMapping("/management")
 public class VulnerableController {
 
+    private final UserRepository userRepository;
+
+    private final LogService logService;
+
+    private final HttpServletRequest request;
+
     @Autowired
-    private UserRepository userRepository;
+    public VulnerableController(UserRepository userRepository, LogService logService, HttpServletRequest request) {
+        this.userRepository = userRepository;
+        this.logService = logService;
+        this.request = request;
+    }
 
     // Simulated SQL Injection Vulnerability
     @GetMapping("/users-info")
     public String searchUsersPage(Model model) {
+        logService.log(request);
+
         // Populate model with initial data
         model.addAttribute("searchTypes", Arrays.asList("username", "email", "first_name", "last_name", "gender", "job_title"));
         model.addAttribute("users", new ArrayList<>()); // Initial empty list of users
@@ -32,6 +46,7 @@ public class VulnerableController {
 
     @PostMapping("/users-info")
     public String searchUsers(@RequestParam String searchType, @RequestParam String searchTerm, Model model) {
+        logService.log(request);
 
         // Construct the SQL query with potential SQL injection vulnerability
         String query = "SELECT * FROM jnktkmz_vulnuser WHERE " + searchType + " = '" + searchTerm + "'";
@@ -82,6 +97,8 @@ public class VulnerableController {
     // Simulated XSS Vulnerability
     @GetMapping("/userprofile")
     public String xss(@RequestParam String username, Model model) {
+        logService.log(request);
+
         boolean userExists = userRepository.existsByUsername(username);
 
         User user;
@@ -135,6 +152,7 @@ public class VulnerableController {
     // Simulated Remote Code Execution (RCE) Vulnerability
     @GetMapping("/command-exec")
     public ResponseEntity<String> executeCommand(@RequestParam String command, @RequestParam(required = false) String pin) {
+        logService.log(request);
 
         // Check if the command is safe or dangerous
         boolean isSafeCommand = safeCommands.containsKey(command);
@@ -178,6 +196,8 @@ public class VulnerableController {
     // Simulated Directory Traversal Vulnerability
     @GetMapping("/file")
     public ResponseEntity<String> directoryTraversal(@RequestParam String filePath) {
+        logService.log(request);
+
         // Retrieve the fake file content
         String fakeFileContent = fakeFileContents.getOrDefault(filePath, "File not found: " + filePath);
 
@@ -189,35 +209,42 @@ public class VulnerableController {
 
     @GetMapping("/user-management")
     public ResponseEntity<String> userManagement() {
+        logService.log(request);
         return deprecatedResourcePage();
     }
 
     @GetMapping("/user-profile")
     public ResponseEntity<String> userProfile() {
+        logService.log(request);
         return deprecatedResourcePage();
     }
 
     @GetMapping("/server-commands")
     public ResponseEntity<String> serverCommands() {
+        logService.log(request);
         return deprecatedResourcePage();
     }
 
     @GetMapping("/file-access")
     public ResponseEntity<String> fileAccess() {
+        logService.log(request);
         return deprecatedResourcePage();
     }
 
     @GetMapping("/admin-dashboard")
     public ResponseEntity<String> adminDashboard() {
+        logService.log(request);
         return deprecatedResourcePage();
     }
 
     @GetMapping("/user-logs")
     public ResponseEntity<String> userLogs() {
+        logService.log(request);
         return deprecatedResourcePage();
     }
 
     private ResponseEntity<String> deprecatedResourcePage() {
+        logService.log(request);
         String htmlContent = "<html><body><h1>Resource Not Managed</h1><p>This resource is no longer managed.</p></body></html>";
         return ResponseEntity.ok(htmlContent);
     }
