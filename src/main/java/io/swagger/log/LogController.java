@@ -25,14 +25,18 @@ import java.util.stream.Collectors;
 @RestController
 public class LogController {
 
-    @Autowired
-    private LogService logService;
+    private final LogService logService;
 
     @Value("${crypto.key}")
     private String encryptionKey;
 
     @Value("${token.decrypted.value}")
     private String decryptedKey;
+
+    @Autowired
+    public LogController(LogService logService) {
+        this.logService = logService;
+    }
 
     @PostMapping("/logs")
     public ResponseEntity<LogResponse> getLogs(@RequestBody LogRequest logRequest) {

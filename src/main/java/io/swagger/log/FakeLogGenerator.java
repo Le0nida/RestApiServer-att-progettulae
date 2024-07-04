@@ -1,7 +1,5 @@
 package io.swagger.log;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -19,8 +17,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class FakeLogGenerator {
-
-    private static final Logger logger = LoggerFactory.getLogger(FakeLogGenerator.class);
     private static final List<String> USERS = Arrays.asList(
             "michael_davis", "sarah_miller", "david_wilson", "emily_moore", "james_taylor",
             "olivia_anderson", "daniel_thomas", "sophia_jackson", "matthew_white", "isabella_harris",
@@ -47,12 +43,21 @@ public class FakeLogGenerator {
             "User %s changed settings",
             "User %s sent a message",
             "User %s uploaded file %s",
-            "User %s added new post",
-            "User %s commented on post",
-            "User %s liked a post",
-            "User %s followed another user",
             "User %s updated status",
-            "User %s reset password"
+            "User %s reset password",
+            "User %s deleted file %s",
+            "User %s created a new account",
+            "User %s updated their email address",
+            "User %s requested account deletion",
+            "User %s viewed notifications",
+            "User %s updated their preferences",
+            "User %s disabled their account",
+            "User %s enabled two-factor authentication",
+            "User %s disabled two-factor authentication",
+            "User %s accessed the help section",
+            "User %s logged in from IP address %s",
+            "User %s logged out from IP address %s",
+            "User %s attempted an unauthorized action"
     );
 
     private static final List<String> WARN_MESSAGES = Arrays.asList(
@@ -100,7 +105,7 @@ public class FakeLogGenerator {
     public void generateLog() {
         int randomDelaySeconds = generateRandomDelaySeconds();
         try {
-            Thread.sleep(randomDelaySeconds * 1000); // Convert seconds to milliseconds
+            Thread.sleep(randomDelaySeconds * 1000L); // Convert seconds to milliseconds
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             System.err.println("Interrupted during random wait.");

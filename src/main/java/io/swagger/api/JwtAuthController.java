@@ -42,7 +42,7 @@ public class JwtAuthController {
             return ResponseEntity.ok(token);
         }
         else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{ \"error\": \"Invalid credentials\" }");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{ ERROR: Invalid credentials }");
         }
     }
 

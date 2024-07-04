@@ -13,8 +13,12 @@ import java.util.List;
 @Service
 public class LogService {
 
+    private final LogRepository logRepository;
+
     @Autowired
-    private LogRepository logRepository;
+    public LogService(LogRepository logRepository) {
+        this.logRepository = logRepository;
+    }
 
     public List<HttpRequestLog> findLogs(HttpRequestLog filter) {
 

@@ -181,7 +181,7 @@ public class CustomInstantDeserializer<T extends Temporal>
 
       case JsonTokenId.ID_STRING: {
         String string = parser.getText().trim();
-        if (string.length() == 0) {
+        if (string.isEmpty()) {
           return null;
         }
         if (string.endsWith("+0000")) {
