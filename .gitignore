@@ -1,12 +1,4 @@
 
-/target
-.idea/vcs.xml
-logs/application.log
-/.idea
-/logs
-/target/classes
-*.class
-/target/classes/io/swagger/api
-/target/classes/io/swagger
-/target/classes/io
-/target/classes/static
+.idea
+logs
+target
