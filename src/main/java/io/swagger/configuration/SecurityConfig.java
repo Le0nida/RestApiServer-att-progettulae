@@ -10,9 +10,12 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.session.SimpleRedirectInvalidSessionStrategy;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -20,8 +23,11 @@ import javax.servlet.http.HttpServletResponse;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     @Autowired
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -30,7 +36,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/user/**").authenticated() // Esempio di endpoint che richiedono JWT
+                .antMatchers("/user/**").authenticated()
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling()
@@ -46,7 +52,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/admin/login", "/css/**").permitAll() // Permetti l'accesso alla pagina di login e ai CSS
                 .antMatchers("/admin/**").authenticated() // Richiedi autenticazione per tutte le pagine sotto /admin/
-                .anyRequest().permitAll() // Permetti tutte le altre richieste
+                .anyRequest().permitAll()
                 .and()
                 .formLogin()
                 .loginPage("/admin/login")
@@ -59,26 +65,51 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .and()
                 .exceptionHandling()
-                .accessDeniedPage("/admin/login?error")
+                .accessDeniedPage("/admin/login?error");
+
+        // Configurazione di gestione della sessione
+        http
+                .sessionManagement()
+                .invalidSessionUrl("/session-invalid")
+                .maximumSessions(1)
+                .expiredUrl("/session-expired")
+                .maxSessionsPreventsLogin(true)
+                .and()
+                .sessionFixation().migrateSession();
+
+        // Configurazione della scadenza della sessione
+        http
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .and()
                 .sessionManagement()
-                .invalidSessionUrl("/session-expired")
+                .sessionFixation().none()
+                .invalidSessionStrategy(new SimpleRedirectInvalidSessionStrategy("/session-invalid"))
                 .maximumSessions(1)
                 .expiredUrl("/session-expired")
                 .maxSessionsPreventsLogin(true);
+
+        // Configurazione di default per altre richieste
+        http
+                .csrf().disable()
+                .authorizeRequests()
+                .anyRequest().permitAll();
     }
 
     @Bean
     @Override
     public UserDetailsService userDetailsService() {
-        // Configurazione di un utente in memoria per scopi di test
         InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-        manager.createUser(User.withDefaultPasswordEncoder()
-                .username("admin")
-                .password("password")
+        manager.createUser(User.withUsername("admin")
+                .password(passwordEncoder().encode("password"))
                 .roles("ADMIN")
                 .build());
         return manager;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
