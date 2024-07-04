@@ -4,8 +4,9 @@
 logs/application.log
 /.idea
 /logs
-/logs
 /target/classes
-/target/classes
-/target
 *.class
+/target/classes/io/swagger/api
+/target/classes/io/swagger
+/target/classes/io
+/target/classes/static
