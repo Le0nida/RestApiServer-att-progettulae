@@ -1,6 +1,5 @@
 package io.swagger.configuration.jwt;
 
-import io.swagger.api.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,13 +21,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Value("${jwt.password}")
     private String password;
+
+    @Value("${jwt.username}")
+    private String username;
     private final JwtTokenService jwtTokenService;
 
-    private final UserRepository userRepository;
-
-    public JwtAuthenticationFilter(JwtTokenService jwtTokenService, UserRepository userRepository) {
+    public JwtAuthenticationFilter(JwtTokenService jwtTokenService) {
         this.jwtTokenService = jwtTokenService;
-        this.userRepository = userRepository;
     }
 
     @Override
@@ -40,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null && jwtTokenService.validateToken(token)) {
             String username = jwtTokenService.getUsernameFromToken(token);
 
-            if (!userRepository.existsByUsername(username)) {
+            if (!username.equals(this.username)) {
                 throw new UsernameNotFoundException("User not found with username: " + username);
             }
 

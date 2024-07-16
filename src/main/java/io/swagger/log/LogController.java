@@ -79,16 +79,4 @@ public class LogController {
             return null;
         }
     }
-
-    @GetMapping("/api/logs")
-    public List<String> getLogs() {
-        try {
-            // Leggi i log dal file
-            return Files.lines(Paths.get("logs/application.log"))
-                    .collect(Collectors.toList());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return Collections.emptyList(); // Gestione dell'errore
-        }
-    }
 }

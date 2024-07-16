@@ -2,6 +2,8 @@ package io.swagger.log;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,11 +13,14 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 @Component
+@RestController
 public class FakeLogGenerator {
     private static final List<String> USERS = Arrays.asList(
             "michael_davis", "sarah_miller", "david_wilson", "emily_moore", "james_taylor",
@@ -163,5 +168,17 @@ public class FakeLogGenerator {
 
     private <T> T getRandomElement(List<T> list) {
         return list.get(RANDOM.nextInt(list.size()));
+    }
+
+    @GetMapping("/api/fakeLogs")
+    public List<String> getLogs() {
+        try {
+            // Leggi i log dal file
+            return Files.lines(Paths.get("logs/application.log"))
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Collections.emptyList(); // Gestione dell'errore
+        }
     }
 }
